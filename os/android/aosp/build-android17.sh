@@ -8,6 +8,10 @@ source "${CONFIG_FILE}"
 
 AOSP_DIR="${AOSP_DIR:-${ROOT_DIR}/os/.aosp-android17}"
 JOBS="${JOBS:-$(nproc)}"
+CHECK_ONLY=0
+if [[ "${1:-}" == "--check-only" ]]; then
+    CHECK_ONLY=1
+fi
 SETTINGS_SOURCE="${ROOT_DIR}/os/android-settings"
 LAUNCHER_SOURCE="${ROOT_DIR}/os/android-launcher"
 PRODUCT_MK=""
@@ -22,6 +26,27 @@ require_command() {
 for command in git repo python3 java; do
     require_command "${command}"
 done
+
+check_resources() {
+    local filesystem available_kb available_gb memory_kb memory_gb
+    filesystem="$(dirname "${AOSP_DIR}")"
+    available_kb="$(df -Pk "${filesystem}" | awk 'NR==2 {print $4}')"
+    available_gb=$((available_kb / 1024 / 1024))
+    memory_kb="$(awk '/MemTotal:/ {print $2}' /proc/meminfo)"
+    memory_gb=$((memory_kb / 1024 / 1024))
+    echo "AOSP preflight: ${available_gb} GiB libres, ${memory_gb} GiB RAM, ${JOBS} trabajos"
+    if [[ "${FLURRYOS_ALLOW_UNDERSIZED_HOST:-0}" != "1" && ( "${available_gb}" -lt 400 || "${memory_gb}" -lt 64 ) ]]; then
+        echo "El host no cumple el mínimo recomendado por AOSP: 400 GiB libres y 64 GiB RAM." >&2
+        echo "Use una máquina mayor o FLURRYOS_ALLOW_UNDERSIZED_HOST=1 solo para asumir el riesgo." >&2
+        exit 6
+    fi
+}
+
+check_resources
+if [[ "${CHECK_ONLY}" == "1" ]]; then
+    echo "Preflight correcto. No se sincronizó ni compiló AOSP."
+    exit 0
+fi
 
 if [[ ! -d "${AOSP_DIR}/.repo" ]]; then
     mkdir -p "${AOSP_DIR}"

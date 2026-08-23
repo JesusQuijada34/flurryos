@@ -71,6 +71,12 @@ La versión de Android no se selecciona dinámicamente. FlurryOS fija el manifie
 
 La aplicación `os/android-settings` se integra como `FlurrySettings`, con certificado `platform`, `privileged: true` y `product_specific: true`. Se añade a `PRODUCT_PACKAGES` antes de compilar, por lo que queda dentro de la imagen Android desde el primer arranque. No es una APK de usuario instalada al azar después de iniciar el sistema: es una aplicación de Ajustes del sistema diseñada para configuración inicial de brillo, tema, conectividad, pantalla, aplicaciones y diagnóstico del runtime.
 
+Para comprobar herramientas y recursos sin descargar AOSP:
+
+```bash
+./os/android/aosp/build-android17.sh --check-only
+```
+
 Para construir la imagen Android 17 en una máquina de desarrollo con espacio y memoria suficientes:
 
 ```bash
