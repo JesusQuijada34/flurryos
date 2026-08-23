@@ -10,6 +10,8 @@ add_library(flurryos_bridge_core
   src/bridge_protocol.cpp
   src/runtime_controller.cpp
   src/translator.cpp
+  src/json_protocol.cpp
+  src/apk_validator.cpp
 )
 target_include_directories(flurryos_bridge_core PUBLIC include)
 target_compile_options(flurryos_bridge_core PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
@@ -30,7 +32,11 @@ if(BUILD_TESTING)
   target_link_libraries(translator_test PRIVATE flurryos_bridge_core)
   target_compile_options(translator_test PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
   add_test(NAME translator_test COMMAND translator_test)
+  add_executable(json_and_apk_test tests/json_and_apk_test.cpp)
+  target_link_libraries(json_and_apk_test PRIVATE flurryos_bridge_core)
+  target_compile_options(json_and_apk_test PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
+  add_test(NAME json_and_apk_test COMMAND json_and_apk_test)
 endif()
 
 install(TARGETS flurryos-bridge RUNTIME DESTINATION usr/lib/flurryos)
-install(FILES include/bridge_protocol.h include/translator.h DESTINATION usr/include/flurryos)
+install(FILES include/bridge_protocol.h include/translator.h include/json_protocol.h include/apk_validator.h DESTINATION usr/include/flurryos)

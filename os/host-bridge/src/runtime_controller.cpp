@@ -125,3 +125,41 @@ CommandResult RuntimeController::install(const std::string_view apk_path) const 
 }
 
 }  // namespace flurryos
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+
+namespace flurryos {
+
+CommandResult RuntimeController::bridge_request(const std::string_view json_line) const {
+  const std::vector<std::string> forward = {"forward", "tcp:6521", "localabstract:flurryos-bridge"};
+  const CommandResult forward_result = run(adb_binary_, forward);
+  if (!forward_result.ok) return {false, "ADB_FORWARD_FAILED " + forward_result.payload};
+
+  const int fd = socket(AF_INET, SOCK_STREAM, 0);
+  if (fd < 0) {
+    run(adb_binary_, {"forward", "--remove", "tcp:6521"});
+    return {false, "SOCKET_FAILED"};
+  }
+  sockaddr_in address{};
+  address.sin_family = AF_INET;
+  address.sin_port = htons(6521);
+  inet_pton(AF_INET, "127.0.0.1", &address.sin_addr);
+  const bool connected = connect(fd, reinterpret_cast<sockaddr*>(&address), sizeof(address)) == 0;
+  if (!connected) {
+    close(fd);
+    run(adb_binary_, {"forward", "--remove", "tcp:6521"});
+    return {false, "BRIDGE_CONNECT_FAILED"};
+  }
+  const std::string payload = std::string(json_line) + "\n";
+  const ssize_t written = write(fd, payload.data(), payload.size());
+  char buffer[8192]{};
+  const ssize_t received = written < 0 ? -1 : read(fd, buffer, sizeof(buffer) - 1U);
+  close(fd);
+  run(adb_binary_, {"forward", "--remove", "tcp:6521"});
+  if (written < 0 || received <= 0) return {false, "BRIDGE_IO_FAILED"};
+  return {true, std::string(buffer, static_cast<std::size_t>(received))};
+}
+
+}  // namespace flurryos

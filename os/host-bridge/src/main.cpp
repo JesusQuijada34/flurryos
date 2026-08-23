@@ -1,4 +1,6 @@
+#include "apk_validator.h"
 #include "bridge_protocol.h"
+#include "json_protocol.h"
 #include "runtime_controller.h"
 #include "translator.h"
 
@@ -101,6 +103,86 @@ flurryos::CommandResult handle_command(flurryos::RuntimeController& runtime, con
   return flurryos::BridgeProtocol::handle(line);
 }
 
+flurryos::JsonResponse handle_json_request(flurryos::RuntimeController& runtime, const flurryos::Translator& translator,
+                                           const flurryos::ApkValidator& apk_validator,
+                                           const flurryos::JsonRequest& request) {
+  flurryos::JsonResponse response;
+  response.id = request.id;
+  const auto fail = [&response](std::string code, std::string message) {
+    response.ok = false;
+    response.error_code = std::move(code);
+    response.message = std::move(message);
+  };
+  const auto command = [&response](const flurryos::CommandResult& result) {
+    response.ok = result.ok;
+    if (result.ok) {
+      response.result.emplace("output", result.payload);
+    } else {
+      response.error_code = "RUNTIME_ERROR";
+      response.message = result.payload;
+    }
+  };
+
+  if (request.method == "status") {
+    command(runtime.status());
+  } else if (request.method == "android.start") {
+    command(runtime.start());
+  } else if (request.method == "android.stop") {
+    command(runtime.stop());
+  } else if (request.method == "apps.list") {
+    command(runtime.bridge_request("{\"version\":1,\"id\":\"" + request.id + "\",\"method\":\"apps.list\",\"args\":{}}"));
+  } else if (request.method == "app.launch") {
+    const auto package = request.args.find("package");
+    if (package == request.args.end()) {
+      fail("PACKAGE_REQUIRED", "falta args.package");
+    } else {
+      const auto validation = flurryos::BridgeProtocol::handle("LAUNCH " + package->second);
+      if (!validation.ok) {
+        fail("PACKAGE_INVALID", validation.payload);
+      } else {
+        const std::string bridge_json = "{\"version\":1,\"id\":\"" + request.id + "\",\"method\":\"app.launch\",\"args\":{\"package\":\"" + package->second + "\"}}";
+        command(runtime.bridge_request(bridge_json));
+      }
+    }
+  } else if (request.method == "apk.install") {
+    const auto file_id = request.args.find("file_id");
+    if (file_id == request.args.end()) {
+      fail("FILE_ID_REQUIRED", "falta args.file_id");
+    } else {
+      const auto validation = apk_validator.validate_file_id(file_id->second);
+      if (!validation.ok) {
+        fail(validation.error_code, validation.message);
+      } else {
+        command(runtime.install(validation.path.string()));
+      }
+    }
+  } else if (request.method == "capabilities") {
+    response.ok = true;
+    response.result = {{"graphics", "wayland-egl"}, {"input", "libinput-evdev"},
+                       {"audio", "pipewire-alsa"}, {"storage", "flurry-store"},
+                       {"network", "networkmanager"}, {"runtime", "cuttlefish-adb"}};
+  } else if (request.method == "translate") {
+    const auto domain = request.args.find("domain");
+    const auto operation = request.args.find("operation");
+    if (domain == request.args.end() || operation == request.args.end()) {
+      fail("TRANSLATION_ARGS_REQUIRED", "faltan args.domain o args.operation");
+    } else {
+      const auto translated = translator.translate(domain->second + " " + operation->second);
+      response.ok = translated.status == flurryos::TranslationStatus::Supported;
+      response.result = {{"domain", translated.domain}, {"backend", std::string(flurryos::backend_name(translated.backend))},
+                         {"detail", translated.detail}};
+      if (!response.ok) {
+        response.error_code = "BACKEND_UNSUPPORTED";
+        response.message = translated.detail;
+        response.result.clear();
+      }
+    }
+  } else {
+    fail("METHOD_NOT_FOUND", "método no permitido");
+  }
+  return response;
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -116,8 +198,10 @@ int main(int argc, char** argv) {
   const std::string adb_binary = env_or("FLURRYOS_ADB_BIN", "/usr/bin/adb");
   const std::string serial = env_or("FLURRYOS_ANDROID_SERIAL", "localhost:6520");
   const std::string android_home = env_or("FLURRYOS_ANDROID_HOME", "/var/lib/flurryos/android");
+  const std::string apk_inbox = env_or("FLURRYOS_APK_INBOX", "/var/lib/flurryos/apks/inbox");
   flurryos::RuntimeController runtime(adb_binary, serial, android_home);
   const flurryos::Translator translator;
+  const flurryos::ApkValidator apk_validator(apk_inbox);
 
   std::signal(SIGINT, stop_server);
   std::signal(SIGTERM, stop_server);
@@ -163,9 +247,25 @@ int main(int argc, char** argv) {
     char buffer[4096]{};
     const ssize_t count = read(client_fd, buffer, sizeof(buffer) - 1U);
     if (count > 0) {
-      const flurryos::CommandResult result = handle_command(runtime, translator, std::string(buffer, static_cast<std::size_t>(count)));
-      const std::string response = (result.ok ? "OK " : "ERROR ") + result.payload + "\n";
-      write_all(client_fd, response);
+      const std::string request_line(buffer, static_cast<std::size_t>(count));
+      const auto first = request_line.find_first_not_of(" \\t\\r\\n");
+      if (first != std::string::npos && request_line[first] == '{') {
+        flurryos::JsonRequest request;
+        std::string parse_error;
+        flurryos::JsonResponse response;
+        if (flurryos::JsonProtocol::parse_request(request_line, request, parse_error)) {
+          response = handle_json_request(runtime, translator, apk_validator, request);
+        } else {
+          response.id = "";
+          response.error_code = "INVALID_JSON";
+          response.message = parse_error;
+        }
+        write_all(client_fd, flurryos::JsonProtocol::serialize_response(response) + "\\n");
+      } else {
+        const flurryos::CommandResult result = handle_command(runtime, translator, request_line);
+        const std::string response = (result.ok ? "OK " : "ERROR ") + result.payload + "\\n";
+        write_all(client_fd, response);
+      }
     }
     close(client_fd);
   }

@@ -17,6 +17,7 @@ class RuntimeController final {
   CommandResult status() const;
   CommandResult launch(std::string_view package_name) const;
   CommandResult install(std::string_view apk_path) const;
+  CommandResult bridge_request(std::string_view json_line) const;
 
  private:
   CommandResult run(const std::string& binary, const std::vector<std::string>& arguments) const;
