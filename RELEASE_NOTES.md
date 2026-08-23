@@ -23,6 +23,17 @@ La ISO fue construida desde este repositorio, reconocida como `ISO 9660 CD-ROM f
 
 Esta versión no incluye todavía una imagen AOSP/Cuttlefish ni garantiza ejecución de APKs en el host. El lanzador Java requiere Android SDK/Gradle y una imagen Android compatible para compilarse y ejecutarse. Google Play, DRM, Play Integrity, binarios ARM-only, aceleración 3D completa, cámaras y sensores no están garantizados.
 
+## Descarga de la ISO
+
+GitHub limita el tamaño de cada asset de release a 2 GiB. Por eso la ISO se publica dividida en partes `flurryos-os-noble-amd64.iso.part-*`. Descarga todas las partes en el mismo directorio y reconstruye la imagen con:
+
+```bash
+cat flurryos-os-noble-amd64.iso.part-* > flurryos-os-noble-amd64.iso
+sha256sum -c flurryos-os-noble-amd64.iso.sha256
+```
+
+La ISO completa es un artefacto grande del release y no forma parte del historial Git.
+
 ## Compilación
 
-Consulta [`README.md`](README.md) y [`os/docs/BUILD_STATUS.md`](os/docs/BUILD_STATUS.md). La ISO publicada es un artefacto grande del release y no forma parte del historial Git.
+Consulta [`README.md`](README.md) y [`os/docs/BUILD_STATUS.md`](os/docs/BUILD_STATUS.md). La construcción reproducible genera la ISO completa en `os/dist` y mantiene los artefactos grandes fuera de Git.
