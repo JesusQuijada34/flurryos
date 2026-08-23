@@ -1,0 +1,23 @@
+android_app {
+    name: "FlurrySettings",
+    srcs: ["src/**/*.java"],
+    resource_dirs: ["res"],
+    manifest: "AndroidManifest.xml",
+    certificate: "platform",
+    privileged: true,
+    product_specific: true,
+    platform_apis: true,
+    min_sdk_version: "29",
+    required: ["flurrysettings-privapp-permissions"],
+    optimize: {
+        enabled: true,
+    },
+}
+
+prebuilt_etc {
+    name: "flurrysettings-privapp-permissions",
+    src: "privapp-permissions-com.flurryos.settings.xml",
+    sub_dir: "permissions",
+    product_specific: true,
+    filename: "privapp-permissions-com.flurryos.settings.xml",
+}

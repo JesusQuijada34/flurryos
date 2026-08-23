@@ -8,7 +8,7 @@ FlurryOS es una distribución experimental **Ubuntu x86_64** orientada a ejecuta
 
 El host Ubuntu ejecuta las aplicaciones Linux normales y el escritorio. La futura instancia Android se ejecutará de forma aislada con AOSP/Cuttlefish sobre KVM. El servicio C++ coordina el ciclo de vida del runtime y acepta únicamente operaciones explícitas; el componente Java vive dentro del entorno Android y usa `PackageManager` e intents para descubrir y lanzar APKs.
 
-FlurryOS **no incluye Waydroid**. Tampoco pretende reimplementar ART o todo el framework Android en C++; esa función la proporciona AOSP dentro del runtime virtualizado.
+FlurryOS **no incluye Waydroid**. El motor Android fijado para la siguiente imagen es **Android 17 AOSP**, compilado para `aosp_cf_x86_64_only_phone-userdebug` sobre Cuttlefish/KVM. Tampoco pretende reimplementar ART o todo el framework Android en C++; esa función la proporciona AOSP dentro del runtime virtualizado.
 
 ## Compilar
 
@@ -65,11 +65,23 @@ Consulta [`docs/android-api-translator.md`](docs/android-api-translator.md) para
 
 El perfil de la ISO incluye GNOME Files, Terminal, Settings, Firefox, VLC, Calculadora, Discos, Capturas, Monitor del sistema, Visor de imágenes, Simple Scan, GIMP, LibreOffice Writer/Calc, OpenSSH Client, htop y btop. El catálogo puede ampliarse modificando [`os/config/package-list.txt`](os/config/package-list.txt) antes de reconstruir la ISO.
 
-## Estado de la capa Android
+## Android 17 y configuración inicial
 
-El lanzador Java es el componente Android inicial. Para compilarlo hacen falta Android SDK, Gradle y una imagen/dispositivo AOSP compatible. El controlador C++ ya separa las operaciones `status`, `start`, `stop`, `install` y `launch`, pero la integración de Cuttlefish y la comunicación de ventanas, audio, portapapeles y archivos se desarrollarán por etapas.
+La versión de Android no se selecciona dinámicamente. FlurryOS fija el manifiesto AOSP `android-17.0.0_r1` mediante `os/android/aosp/android-version.env`, incluyendo el commit del manifiesto para que una release no dependa de una rama móvil. El objetivo es `aosp_cf_x86_64_only_phone-userdebug`.
 
-Consulta [`os/docs/BUILD_STATUS.md`](os/docs/BUILD_STATUS.md) y [`docs/os_architecture_notes.md`](docs/os_architecture_notes.md) para conocer las validaciones y limitaciones actuales.
+La aplicación `os/android-settings` se integra como `FlurrySettings`, con certificado `platform`, `privileged: true` y `product_specific: true`. Se añade a `PRODUCT_PACKAGES` antes de compilar, por lo que queda dentro de la imagen Android desde el primer arranque. No es una APK de usuario instalada al azar después de iniciar el sistema: es una aplicación de Ajustes del sistema diseñada para configuración inicial de brillo, tema, conectividad, pantalla, aplicaciones y diagnóstico del runtime.
+
+Para construir la imagen Android 17 en una máquina de desarrollo con espacio y memoria suficientes:
+
+```bash
+AOSP_DIR="$PWD/os/.aosp-android17" \
+  JOBS="$(nproc)" \
+  ./os/android/aosp/build-android17.sh
+```
+
+El script sincroniza el manifiesto fijado, copia `FlurrySettings` al árbol AOSP, modifica el producto Cuttlefish, ejecuta Soong y copia `system.img`, `vendor.img`, `userdata.img` y `boot.img` a `os/dist/android17`. La compilación real requiere `repo`, Java, Python, el árbol AOSP completo y soporte KVM para ejecutar Cuttlefish; no se realizó dentro del sandbox actual por no disponer de ese toolchain ni del espacio requerido.
+
+Consulta [`os/android/aosp/android-version.env`](os/android/aosp/android-version.env), [`os/android/aosp/build-android17.sh`](os/android/aosp/build-android17.sh), [`docs/android17-cuttlefish-findings.md`](docs/android17-cuttlefish-findings.md), [`os/docs/BUILD_STATUS.md`](os/docs/BUILD_STATUS.md) y [`docs/os_architecture_notes.md`](docs/os_architecture_notes.md) para conocer el procedimiento y las limitaciones actuales.
 
 ## Licencia
 

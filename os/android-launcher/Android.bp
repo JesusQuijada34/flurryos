@@ -1,0 +1,13 @@
+android_app {
+    name: "FlurryLauncher",
+    srcs: ["app/src/main/java/**/*.java"],
+    resource_dirs: ["app/src/main/res"],
+    manifest: "app/src/main/AndroidManifest.xml",
+    certificate: "platform",
+    product_specific: true,
+    platform_apis: true,
+    min_sdk_version: "29",
+    optimize: {
+        enabled: true,
+    },
+}
