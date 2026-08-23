@@ -29,6 +29,22 @@ plymouth-theme-ubuntu-text
 # Aplicaciones Linux comunes
 file-roller
 gedit
+firefox
+vlc
+gnome-calculator
+gnome-disk-utility
+gnome-screenshot
+gnome-system-monitor
+eog
+simple-scan
+# Herramientas creativas y productividad
+gimp
+libreoffice-writer
+libreoffice-calc
+# Utilidades de red y soporte
+openssh-client
+htop
+btop
 
 # Desarrollo C++ y Java
 build-essential

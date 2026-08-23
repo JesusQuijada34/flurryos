@@ -9,4 +9,5 @@ if ! getent passwd flurryos >/dev/null 2>&1; then
 fi
 install -d -o flurryos -g flurryos -m 0750 /var/lib/flurryos
 install -d -o flurryos -g flurryos -m 0750 /var/lib/flurryos/apks
+install -d -o flurryos -g flurryos -m 0750 /var/lib/flurryos/apks/inbox
 install -d -o flurryos -g flurryos -m 0750 /var/lib/flurryos/android

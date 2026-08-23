@@ -94,7 +94,10 @@ flurryos::CommandResult handle_command(flurryos::RuntimeController& runtime, con
     const auto result = translator.translate(domain + " " + operation);
     std::ostringstream response;
     response << flurryos::status_name(result.status) << " domain=" << result.domain
-             << " backend=" << flurryos::backend_name(result.backend) << " detail=" << result.detail;
+             << " backend=" << flurryos::backend_name(result.backend)
+             << " action=" << flurryos::action_name(result.action)
+             << " native=" << flurryos::native_call_string(result.native_call)
+             << " detail=" << result.detail;
     return {result.status == flurryos::TranslationStatus::Supported, response.str()};
   }
   if (command == "CAPABILITIES") {
@@ -170,6 +173,9 @@ flurryos::JsonResponse handle_json_request(flurryos::RuntimeController& runtime,
       const auto translated = translator.translate(domain->second + " " + operation->second);
       response.ok = translated.status == flurryos::TranslationStatus::Supported;
       response.result = {{"domain", translated.domain}, {"backend", std::string(flurryos::backend_name(translated.backend))},
+                         {"action", std::string(flurryos::action_name(translated.action))},
+                         {"native_executable", translated.native_call.executable},
+                         {"native_call", flurryos::native_call_string(translated.native_call)},
                          {"detail", translated.detail}};
       if (!response.ok) {
         response.error_code = "BACKEND_UNSUPPORTED";

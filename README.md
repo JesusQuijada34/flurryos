@@ -37,6 +37,12 @@ cmake --build /tmp/flurryos-host-bridge
 ctest --test-dir /tmp/flurryos-host-bridge --output-on-failure
 ```
 
+## Lanzador Android con interfaz de escritorio
+
+El módulo `os/android-launcher` incluye una interfaz principal Java con estética Ubuntu: cabecera FlurryOS, indicador del runtime Cuttlefish, búsqueda, cuadrícula de aplicaciones con iconos, accesos rápidos a Ajustes y Archivos y lanzamiento mediante actividades explícitas. La interfaz usa widgets del framework Android para mantenerse compatible con una imagen AOSP/Cuttlefish mínima.
+
+El servicio `BridgeService` atiende el socket abstracto `flurryos-bridge`; `BridgeSocketServer` limita cada JSON Line a 64 KiB y el lanzamiento se despacha al hilo principal de Android. El host C++ puede conectarse mediante `adb forward tcp:6521 localabstract:flurryos-bridge`.
+
 ## Traductor Android-x86-like
 
 El puente C++ expone un traductor de dominios Android hacia backends Linux controlados. La interfaz de prueba usa el socket del daemon:
@@ -51,9 +57,13 @@ TRANSLATE runtime adb
 CAPABILITIES
 ```
 
-Las traducciones iniciales son `graphics -> Wayland/EGL/Mesa`, `input -> libinput/evdev`, `audio -> PipeWire/ALSA`, `storage -> FlurryStore`, `network -> NetworkManager` y `runtime -> Cuttlefish/ADB`. El módulo rechaza operaciones desconocidas o solicitudes con argumentos adicionales. Esta capa adapta servicios; no reemplaza ART ni convierte bytecode DEX en código Linux.
+Las traducciones iniciales son `graphics -> Wayland/EGL/Mesa`, `input -> libinput/evdev`, `audio -> PipeWire/ALSA`, `storage -> FlurryStore`, `network -> NetworkManager` y `runtime -> Cuttlefish/ADB`. El traductor ahora devuelve una acción nativa, un ejecutable lógico y argumentos separados; no ejecuta shell ni convierte bytecode DEX en código Linux. Esta separación permite que un supervisor posterior aplique políticas antes de resolver cada backend.
 
-Consulta [`docs/android-x86-like-translator.md`](docs/android-x86-like-translator.md) para la arquitectura y sus límites.
+Consulta [`docs/android-api-translator.md`](docs/android-api-translator.md) para el contrato, la tabla de mapeos y sus límites.
+
+## Aplicaciones Linux incluidas
+
+El perfil de la ISO incluye GNOME Files, Terminal, Settings, Firefox, VLC, Calculadora, Discos, Capturas, Monitor del sistema, Visor de imágenes, Simple Scan, GIMP, LibreOffice Writer/Calc, OpenSSH Client, htop y btop. El catálogo puede ampliarse modificando [`os/config/package-list.txt`](os/config/package-list.txt) antes de reconstruir la ISO.
 
 ## Estado de la capa Android
 

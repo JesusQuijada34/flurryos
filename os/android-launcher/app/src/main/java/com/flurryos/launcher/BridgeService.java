@@ -6,7 +6,9 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -14,8 +16,9 @@ import org.json.JSONObject;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /** Android-side endpoint for the FlurryOS host bridge. */
 public final class BridgeService extends Service implements BridgeSocketServer.Handler {
@@ -25,11 +28,10 @@ public final class BridgeService extends Service implements BridgeSocketServer.H
     private static final String PACKAGE_PATTERN = "[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)*";
     private static final int MAX_ID_LENGTH = 64;
     private BridgeSocketServer socketServer;
-    private ExecutorService work;
+    private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
     @Override public void onCreate() {
         super.onCreate();
-        work = Executors.newSingleThreadExecutor();
         socketServer = new BridgeSocketServer(SOCKET_NAME, this);
         try {
             socketServer.start();
@@ -41,7 +43,8 @@ public final class BridgeService extends Service implements BridgeSocketServer.H
     @Override public IBinder onBind(Intent intent) { return null; }
 
     @Override public JSONObject handle(JSONObject request) {
-        final String id = request.optString("id", "");
+        Object rawId = request.opt("id");
+        final String id = rawId instanceof String ? (String) rawId : "";
         try {
             validateRequest(request, id);
             String method = request.getString("method");
@@ -58,7 +61,10 @@ public final class BridgeService extends Service implements BridgeSocketServer.H
     private static void validateRequest(JSONObject request, String id) throws Exception {
         if (request.optInt("version", -1) != 1) throw new IllegalArgumentException("versión no soportada");
         if (id.length() == 0 || id.length() > MAX_ID_LENGTH) throw new IllegalArgumentException("id inválido");
-        if (!request.has("method")) throw new IllegalArgumentException("falta method");
+        Object rawMethod = request.opt("method");
+        if (!(rawMethod instanceof String) || ((String) rawMethod).length() == 0 || ((String) rawMethod).length() > 64) {
+            throw new IllegalArgumentException("method inválido");
+        }
         if (!request.has("args")) request.put("args", new JSONObject());
         if (request.optJSONObject("args") == null) {
             throw new IllegalArgumentException("args debe ser un objeto");
@@ -97,8 +103,22 @@ public final class BridgeService extends Service implements BridgeSocketServer.H
 
     private JSONObject launch(String id, JSONObject args) throws Exception {
         if (args == null) throw new IllegalArgumentException("faltan args");
-        String packageName = args.optString("package", "");
-        String activityName = args.optString("activity", "");
+        final JSONObject launchArgs = args;
+        FutureTask<JSONObject> task = new FutureTask<>(() -> launchOnMainThread(id, launchArgs));
+        mainHandler.post(task);
+        try {
+            return task.get(5, TimeUnit.SECONDS);
+        } catch (TimeoutException exception) {
+            task.cancel(true);
+            throw new IllegalStateException("tiempo agotado al lanzar la aplicación");
+        }
+    }
+
+    private JSONObject launchOnMainThread(String id, JSONObject args) throws Exception {
+        Object rawPackage = args.opt("package");
+        Object rawActivity = args.opt("activity");
+        String packageName = rawPackage instanceof String ? (String) rawPackage : "";
+        String activityName = rawActivity instanceof String ? (String) rawActivity : "";
         if (!packageName.matches(PACKAGE_PATTERN)) throw new IllegalArgumentException("package inválido");
         Intent intent;
         if (activityName.length() > 0) {
@@ -106,6 +126,10 @@ public final class BridgeService extends Service implements BridgeSocketServer.H
             intent = new Intent(ACTION_MAIN);
             intent.addCategory(CATEGORY_LAUNCHER);
             intent.setComponent(new ComponentName(packageName, activityName));
+            ResolveInfo resolved = getPackageManager().resolveActivity(intent, PackageManager.MATCH_DEFAULT_ONLY);
+            if (resolved == null || resolved.activityInfo == null || !packageName.equals(resolved.activityInfo.packageName)) {
+                throw new IllegalArgumentException("actividad no resoluble");
+            }
         } else {
             intent = getPackageManager().getLaunchIntentForPackage(packageName);
             if (intent == null) throw new IllegalArgumentException("actividad lanzable no encontrada");
@@ -126,7 +150,6 @@ public final class BridgeService extends Service implements BridgeSocketServer.H
 
     @Override public void onDestroy() {
         if (socketServer != null) socketServer.close();
-        if (work != null) work.shutdownNow();
         super.onDestroy();
     }
 }

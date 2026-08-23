@@ -2,14 +2,12 @@ package com.flurryos.launcher;
 
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
-import android.os.SystemClock;
-
 import org.json.JSONObject;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ExecutorService;
@@ -64,11 +62,18 @@ public final class BridgeSocketServer implements AutoCloseable {
 
     private void serve(LocalSocket client) {
         try (LocalSocket socket = client;
-             BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
              BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8))) {
-            String line = reader.readLine();
-            if (line == null || line.getBytes(StandardCharsets.UTF_8).length > MAX_LINE_BYTES) {
+            String line;
+            try {
+                line = readLineLimited(socket.getInputStream());
+            } catch (RequestTooLargeException exception) {
                 writer.write(error("", "REQUEST_TOO_LARGE", "solicitud ausente o demasiado grande").toString());
+                writer.newLine();
+                writer.flush();
+                return;
+            }
+            if (line == null) {
+                writer.write(error("", "REQUEST_EMPTY", "solicitud ausente").toString());
                 writer.newLine();
                 writer.flush();
                 return;
@@ -85,6 +90,23 @@ public final class BridgeSocketServer implements AutoCloseable {
         } catch (IOException exception) {
             System.err.println("Bridge client error: " + exception.getMessage());
         }
+    }
+
+    private static String readLineLimited(InputStream input) throws IOException, RequestTooLargeException {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        int value;
+        while ((value = input.read()) != -1) {
+            if (value == '\\n') break;
+            if (value == '\\r') continue;
+            if (bytes.size() >= MAX_LINE_BYTES) throw new RequestTooLargeException();
+            bytes.write(value);
+        }
+        if (value == -1 && bytes.size() == 0) return null;
+        return bytes.toString(StandardCharsets.UTF_8.name());
+    }
+
+    private static final class RequestTooLargeException extends Exception {
+        private static final long serialVersionUID = 1L;
     }
 
     public synchronized void close() {
