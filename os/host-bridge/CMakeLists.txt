@@ -9,6 +9,7 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 add_library(flurryos_bridge_core
   src/bridge_protocol.cpp
   src/runtime_controller.cpp
+  src/translator.cpp
 )
 target_include_directories(flurryos_bridge_core PUBLIC include)
 target_compile_options(flurryos_bridge_core PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
@@ -25,7 +26,11 @@ if(BUILD_TESTING)
   target_link_libraries(bridge_smoke_test PRIVATE flurryos_bridge_core)
   target_compile_options(bridge_smoke_test PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
   add_test(NAME bridge_smoke_test COMMAND bridge_smoke_test)
+  add_executable(translator_test tests/translator_test.cpp)
+  target_link_libraries(translator_test PRIVATE flurryos_bridge_core)
+  target_compile_options(translator_test PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
+  add_test(NAME translator_test COMMAND translator_test)
 endif()
 
 install(TARGETS flurryos-bridge RUNTIME DESTINATION usr/lib/flurryos)
-install(FILES include/bridge_protocol.h DESTINATION usr/include/flurryos)
+install(FILES include/bridge_protocol.h include/translator.h DESTINATION usr/include/flurryos)

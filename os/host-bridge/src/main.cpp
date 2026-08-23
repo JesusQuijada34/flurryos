@@ -1,5 +1,6 @@
 #include "bridge_protocol.h"
 #include "runtime_controller.h"
+#include "translator.h"
 
 #include <cerrno>
 #include <csignal>
@@ -57,7 +58,7 @@ std::string parse_socket_path(int argc, char** argv) {
   return "/run/flurryos/bridge.sock";
 }
 
-flurryos::CommandResult handle_command(flurryos::RuntimeController& runtime, const std::string& line) {
+flurryos::CommandResult handle_command(flurryos::RuntimeController& runtime, const flurryos::Translator& translator, const std::string& line) {
   std::istringstream input(line);
   std::string command;
   input >> command;
@@ -84,6 +85,19 @@ flurryos::CommandResult handle_command(flurryos::RuntimeController& runtime, con
     input >> apk_path;
     return runtime.install(apk_path);
   }
+  if (command == "TRANSLATE") {
+    std::string domain;
+    std::string operation;
+    input >> domain >> operation;
+    const auto result = translator.translate(domain + " " + operation);
+    std::ostringstream response;
+    response << flurryos::status_name(result.status) << " domain=" << result.domain
+             << " backend=" << flurryos::backend_name(result.backend) << " detail=" << result.detail;
+    return {result.status == flurryos::TranslationStatus::Supported, response.str()};
+  }
+  if (command == "CAPABILITIES") {
+    return {true, "graphics=wayland-egl input=libinput-evdev audio=pipewire-alsa storage=flurry-store network=networkmanager runtime=cuttlefish-adb"};
+  }
   return flurryos::BridgeProtocol::handle(line);
 }
 
@@ -103,6 +117,7 @@ int main(int argc, char** argv) {
   const std::string serial = env_or("FLURRYOS_ANDROID_SERIAL", "localhost:6520");
   const std::string android_home = env_or("FLURRYOS_ANDROID_HOME", "/var/lib/flurryos/android");
   flurryos::RuntimeController runtime(adb_binary, serial, android_home);
+  const flurryos::Translator translator;
 
   std::signal(SIGINT, stop_server);
   std::signal(SIGTERM, stop_server);
@@ -148,7 +163,7 @@ int main(int argc, char** argv) {
     char buffer[4096]{};
     const ssize_t count = read(client_fd, buffer, sizeof(buffer) - 1U);
     if (count > 0) {
-      const flurryos::CommandResult result = handle_command(runtime, std::string(buffer, static_cast<std::size_t>(count)));
+      const flurryos::CommandResult result = handle_command(runtime, translator, std::string(buffer, static_cast<std::size_t>(count)));
       const std::string response = (result.ok ? "OK " : "ERROR ") + result.payload + "\n";
       write_all(client_fd, response);
     }

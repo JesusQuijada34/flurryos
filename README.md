@@ -37,6 +37,24 @@ cmake --build /tmp/flurryos-host-bridge
 ctest --test-dir /tmp/flurryos-host-bridge --output-on-failure
 ```
 
+## Traductor Android-x86-like
+
+El puente C++ expone un traductor de dominios Android hacia backends Linux controlados. La interfaz de prueba usa el socket del daemon:
+
+```text
+TRANSLATE graphics egl
+TRANSLATE input events
+TRANSLATE audio output
+TRANSLATE storage shared
+TRANSLATE network virtual
+TRANSLATE runtime adb
+CAPABILITIES
+```
+
+Las traducciones iniciales son `graphics -> Wayland/EGL/Mesa`, `input -> libinput/evdev`, `audio -> PipeWire/ALSA`, `storage -> FlurryStore`, `network -> NetworkManager` y `runtime -> Cuttlefish/ADB`. El módulo rechaza operaciones desconocidas o solicitudes con argumentos adicionales. Esta capa adapta servicios; no reemplaza ART ni convierte bytecode DEX en código Linux.
+
+Consulta [`docs/android-x86-like-translator.md`](docs/android-x86-like-translator.md) para la arquitectura y sus límites.
+
 ## Estado de la capa Android
 
 El lanzador Java es el componente Android inicial. Para compilarlo hacen falta Android SDK, Gradle y una imagen/dispositivo AOSP compatible. El controlador C++ ya separa las operaciones `status`, `start`, `stop`, `install` y `launch`, pero la integración de Cuttlefish y la comunicación de ventanas, audio, portapapeles y archivos se desarrollarán por etapas.
