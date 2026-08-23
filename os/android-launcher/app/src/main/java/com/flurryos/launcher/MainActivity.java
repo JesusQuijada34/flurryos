@@ -1,4 +1,4 @@
-package com.influent.launcher;
+package com.flurryos.launcher;
 
 import android.app.Activity;
 import android.content.ActivityNotFoundException;
@@ -21,7 +21,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * Influent's Android-side launcher. The Linux host communicates with this
+ * FlurryOS's Android-side launcher. The Linux host communicates with this
  * component through explicit intents after the C++ bridge has selected a
  * package. No shell command or arbitrary URI is accepted here.
  */
@@ -53,7 +53,7 @@ public final class MainActivity extends Activity {
         root.setBackgroundColor(Color.WHITE);
 
         TextView header = new TextView(this);
-        header.setText("Influent Apps");
+        header.setText("FlurryOS Apps");
         header.setTextColor(Color.WHITE);
         header.setTextSize(22.0f);
         header.setGravity(Gravity.CENTER_VERTICAL);
@@ -76,7 +76,7 @@ public final class MainActivity extends Activity {
         root.addView(appList, new LinearLayout.LayoutParams(-1, 0, 1.0f));
 
         TextView footer = new TextView(this);
-        footer.setText("Capa Android de Influent OS");
+        footer.setText("Capa Android de FlurryOS OS");
         footer.setTextColor(orange);
         footer.setGravity(Gravity.CENTER);
         footer.setPadding(12, 12, 12, 18);
@@ -102,7 +102,7 @@ public final class MainActivity extends Activity {
     }
 
     private void handleIntent(Intent intent) {
-        if (intent == null || !"com.influent.launcher.OPEN_PACKAGE".equals(intent.getAction())) {
+        if (intent == null || !"com.flurryos.launcher.OPEN_PACKAGE".equals(intent.getAction())) {
             return;
         }
         String packageName = intent.getStringExtra("package");

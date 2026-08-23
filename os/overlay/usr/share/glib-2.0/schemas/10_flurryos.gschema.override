@@ -8,11 +8,11 @@ font-name='Ubuntu 11'
 theme='Yaru-dark'
 
 [org.gnome.desktop.background]
-picture-uri='file:///usr/share/backgrounds/influent/influent.svg'
-picture-uri-dark='file:///usr/share/backgrounds/influent/influent.svg'
+picture-uri='file:///usr/share/backgrounds/flurryos/flurryos.svg'
+picture-uri-dark='file:///usr/share/backgrounds/flurryos/flurryos.svg'
 primary-color='#2C001E'
 secondary-color='#E95420'
 
 [org.gnome.shell]
 enable-hot-corners=false
-favorite-apps=['org.gnome.Nautilus.desktop', 'org.gnome.Terminal.desktop', 'firefox.desktop', 'influent-apps.desktop']
+favorite-apps=['org.gnome.Nautilus.desktop', 'org.gnome.Terminal.desktop', 'firefox.desktop', 'flurryos-apps.desktop']

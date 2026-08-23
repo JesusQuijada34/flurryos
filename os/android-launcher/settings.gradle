@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "InfluentLauncher"
+rootProject.name = "FlurryOSLauncher"
 include(":app")

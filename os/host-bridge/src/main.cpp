@@ -54,10 +54,10 @@ std::string parse_socket_path(int argc, char** argv) {
       return argv[index + 1];
     }
   }
-  return "/run/influent/bridge.sock";
+  return "/run/flurryos/bridge.sock";
 }
 
-influent::CommandResult handle_command(influent::RuntimeController& runtime, const std::string& line) {
+flurryos::CommandResult handle_command(flurryos::RuntimeController& runtime, const std::string& line) {
   std::istringstream input(line);
   std::string command;
   input >> command;
@@ -84,7 +84,7 @@ influent::CommandResult handle_command(influent::RuntimeController& runtime, con
     input >> apk_path;
     return runtime.install(apk_path);
   }
-  return influent::BridgeProtocol::handle(line);
+  return flurryos::BridgeProtocol::handle(line);
 }
 
 }  // namespace
@@ -99,10 +99,10 @@ int main(int argc, char** argv) {
     return 1;
   }
 
-  const std::string adb_binary = env_or("INFLUENT_ADB_BIN", "/usr/bin/adb");
-  const std::string serial = env_or("INFLUENT_ANDROID_SERIAL", "localhost:6520");
-  const std::string android_home = env_or("INFLUENT_ANDROID_HOME", "/var/lib/influent/android");
-  influent::RuntimeController runtime(adb_binary, serial, android_home);
+  const std::string adb_binary = env_or("FLURRYOS_ADB_BIN", "/usr/bin/adb");
+  const std::string serial = env_or("FLURRYOS_ANDROID_SERIAL", "localhost:6520");
+  const std::string android_home = env_or("FLURRYOS_ANDROID_HOME", "/var/lib/flurryos/android");
+  flurryos::RuntimeController runtime(adb_binary, serial, android_home);
 
   std::signal(SIGINT, stop_server);
   std::signal(SIGTERM, stop_server);
@@ -132,7 +132,7 @@ int main(int argc, char** argv) {
   }
   chmod(socket_path.c_str(), 0660);
 
-  std::cout << "influent-bridge escuchando en " << socket_path << '\n';
+  std::cout << "flurryos-bridge escuchando en " << socket_path << '\n';
   while (running != 0) {
     const int client_fd = accept(server_fd, nullptr, nullptr);
     if (client_fd < 0) {
@@ -148,7 +148,7 @@ int main(int argc, char** argv) {
     char buffer[4096]{};
     const ssize_t count = read(client_fd, buffer, sizeof(buffer) - 1U);
     if (count > 0) {
-      const influent::CommandResult result = handle_command(runtime, std::string(buffer, static_cast<std::size_t>(count)));
+      const flurryos::CommandResult result = handle_command(runtime, std::string(buffer, static_cast<std::size_t>(count)));
       const std::string response = (result.ok ? "OK " : "ERROR ") + result.payload + "\n";
       write_all(client_fd, response);
     }

@@ -9,7 +9,7 @@
 
     <application
         android:allowBackup="false"
-        android:label="Influent Apps"
+        android:label="FlurryOS Apps"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
@@ -20,7 +20,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
             <intent-filter>
-                <action android:name="com.influent.launcher.OPEN_PACKAGE" />
+                <action android:name="com.flurryos.launcher.OPEN_PACKAGE" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>

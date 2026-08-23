@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <sstream>
 
-namespace influent {
+namespace flurryos {
 
 RuntimeController::RuntimeController(std::string adb_binary, std::string serial, std::string cvd_home)
     : adb_binary_(std::move(adb_binary)), serial_(std::move(serial)), cvd_home_(std::move(cvd_home)) {}
@@ -124,4 +124,4 @@ CommandResult RuntimeController::install(const std::string_view apk_path) const 
   return run(adb_binary_, arguments);
 }
 
-}  // namespace influent
+}  // namespace flurryos

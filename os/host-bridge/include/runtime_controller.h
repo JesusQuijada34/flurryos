@@ -6,7 +6,7 @@
 #include <string_view>
 #include <vector>
 
-namespace influent {
+namespace flurryos {
 
 class RuntimeController final {
  public:
@@ -27,4 +27,4 @@ class RuntimeController final {
   std::string cvd_home_;
 };
 
-}  // namespace influent
+}  // namespace flurryos

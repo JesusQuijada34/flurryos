@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -Eeuo pipefail
 
-SOCKET="${INFLUENT_BRIDGE_SOCKET:-/run/influent/bridge.sock}"
+SOCKET="${FLURRYOS_BRIDGE_SOCKET:-/run/flurryos/bridge.sock}"
 COMMAND="ANDROID_START"
 if [[ "$#" -eq 1 ]]; then
     if [[ ! "$1" =~ ^[A-Za-z0-9_]+(\.[A-Za-z0-9_]+)*$ ]]; then
@@ -10,7 +10,7 @@ if [[ "$#" -eq 1 ]]; then
     fi
     COMMAND="LAUNCH $1"
 elif [[ "$#" -gt 1 ]]; then
-    echo "Uso: influent-apps [package.name]" >&2
+    echo "Uso: flurryos-apps [package.name]" >&2
     exit 2
 fi
 

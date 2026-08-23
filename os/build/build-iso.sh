@@ -31,7 +31,7 @@ export LIVE_BUILD="${ROOT_DIR}/build/live-build"
 # chroot caches, but ask live-build to invalidate all binary-stage markers.
 rm -rf config
 mkdir -p config/package-lists config/includes.chroot config/hooks/normal
-cp "${ROOT_DIR}/config/package-list.txt" config/package-lists/influent.list.chroot
+cp "${ROOT_DIR}/config/package-list.txt" config/package-lists/flurryos.list.chroot
 cp -a "${ROOT_DIR}/config/hooks/normal/." config/hooks/normal/
 cp -a "${ROOT_DIR}/overlay/." config/includes.chroot/
 chmod +x config/hooks/normal/*.chroot config/includes.chroot/usr/local/bin/*
@@ -53,9 +53,9 @@ lb config \
   --debian-installer false \
   --memtest none \
   --apt-recommends true \
-  --iso-application "Influent OS" \
-  --iso-publisher "Influent Project" \
-  --iso-volume "INFLUENT_OS"
+  --iso-application "FlurryOS OS" \
+  --iso-publisher "FlurryOS Project" \
+  --iso-volume "FLURRYOS_OS"
 
 if [[ ! -x chroot/usr/bin/env ]]; then
   lb clean --chroot --binary
@@ -72,7 +72,7 @@ if [[ -z "${ISO}" ]]; then
   exit 3
 fi
 
-TARGET="${OUTPUT_DIR}/influent-os-${SUITE}-${ARCH}.iso"
+TARGET="${OUTPUT_DIR}/flurryos-os-${SUITE}-${ARCH}.iso"
 cp -f "${ISO}" "${TARGET}"
 sha256sum "${TARGET}" > "${TARGET}.sha256"
 printf 'ISO creada: %s\nSHA-256: %s\n' "${TARGET}" "${TARGET}.sha256"

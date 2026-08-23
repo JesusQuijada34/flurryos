@@ -1,8 +1,8 @@
-# Influent OS: arquitectura de aplicaciones Linux y Android
+# FlurryOS OS: arquitectura de aplicaciones Linux y Android
 
 ## Alcance del prototipo
 
-Influent OS es una distribución experimental **x86_64 basada en Ubuntu Noble**, con sesión GNOME sobre Wayland, aplicaciones Linux nativas y una capa Android separada del host. La primera entrega no intenta reemplazar el kernel ni reimplementar Android: integra componentes existentes de Ubuntu y AOSP mediante interfaces controladas.
+FlurryOS OS es una distribución experimental **x86_64 basada en Ubuntu Noble**, con sesión GNOME sobre Wayland, aplicaciones Linux nativas y una capa Android separada del host. La primera entrega no intenta reemplazar el kernel ni reimplementar Android: integra componentes existentes de Ubuntu y AOSP mediante interfaces controladas.
 
 ## Decisión Android: sin Waydroid
 

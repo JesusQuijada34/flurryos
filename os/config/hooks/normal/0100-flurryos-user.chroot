@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+
+if ! getent group flurryos >/dev/null 2>&1; then
+    groupadd --system flurryos
+fi
+if ! getent passwd flurryos >/dev/null 2>&1; then
+    useradd --system --gid flurryos --home-dir /var/lib/flurryos --shell /usr/sbin/nologin flurryos
+fi
+install -d -o flurryos -g flurryos -m 0750 /var/lib/flurryos
+install -d -o flurryos -g flurryos -m 0750 /var/lib/flurryos/apks
+install -d -o flurryos -g flurryos -m 0750 /var/lib/flurryos/android

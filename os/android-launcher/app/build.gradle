@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'com.influent.launcher'
+    namespace 'com.flurryos.launcher'
     compileSdk 33
 
     defaultConfig {
-        applicationId 'com.influent.launcher'
+        applicationId 'com.flurryos.launcher'
         minSdk 24
         targetSdk 33
         versionCode 1

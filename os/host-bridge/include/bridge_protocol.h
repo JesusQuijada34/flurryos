@@ -3,7 +3,7 @@
 #include <string>
 #include <string_view>
 
-namespace influent {
+namespace flurryos {
 
 struct CommandResult {
   bool ok;
@@ -19,4 +19,4 @@ class BridgeProtocol final {
   static bool valid_apk_path(std::string_view path);
 };
 
-}  // namespace influent
+}  // namespace flurryos

@@ -1,0 +1,23 @@
+[Unit]
+Description=FlurryOS OS Android integration bridge
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+EnvironmentFile=-/etc/flurryos/flurryos.conf
+Type=simple
+User=flurryos
+Group=flurryos
+RuntimeDirectory=flurryos
+RuntimeDirectoryMode=0750
+ExecStart=/usr/lib/flurryos/flurryos-bridge --socket=/run/flurryos/bridge.sock
+Restart=on-failure
+RestartSec=2s
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/run/flurryos /var/lib/flurryos
+
+[Install]
+WantedBy=multi-user.target

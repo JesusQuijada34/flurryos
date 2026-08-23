@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=FlurryOS Apps
+Comment=Lanzador de aplicaciones Android de FlurryOS OS
+Exec=/usr/local/bin/flurryos-apps
+Icon=application-x-apk
+Terminal=false
+Type=Application
+Categories=Utility;System;
+Keywords=Android;APK;FlurryOS;
+StartupNotify=true

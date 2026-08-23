@@ -1,6 +1,6 @@
-# Influent OS — prototipo Ubuntu x86_64
+# FlurryOS OS — prototipo Ubuntu x86_64
 
-Influent OS es un prototipo de distribución basada en Ubuntu para ejecutar aplicaciones Linux nativas y ofrecer una capa Android separada, sin Waydroid. La primera versión prioriza una base reproducible, un escritorio Wayland sencillo y una integración Android basada en una imagen AOSP x86_64 ejecutada de forma virtualizada.
+FlurryOS OS es un prototipo de distribución basada en Ubuntu para ejecutar aplicaciones Linux nativas y ofrecer una capa Android separada, sin Waydroid. La primera versión prioriza una base reproducible, un escritorio Wayland sencillo y una integración Android basada en una imagen AOSP x86_64 ejecutada de forma virtualizada.
 
 ## Estado actual
 
@@ -14,8 +14,8 @@ Este directorio contiene la primera base de ingeniería: configuración de una i
 | Escritorio | Wayland con GNOME Shell y personalización visual mínima |
 | Apps Linux | Paquetes APT, Flatpak y ejecutables ELF del sistema |
 | Android | Imagen AOSP/Cuttlefish x86_64 separada; no se usa Waydroid |
-| Puente | `influent-bridge`, daemon C++ sobre socket Unix |
-| Lanzador APK | `InfluentLauncher`, aplicación Java instalada dentro del entorno Android |
+| Puente | `flurryos-bridge`, daemon C++ sobre socket Unix |
+| Lanzador APK | `FlurryOSLauncher`, aplicación Java instalada dentro del entorno Android |
 | Empaquetado | Script de imagen reproducible; PackageMaker queda como componente de distribución opcional |
 
 ## Construcción

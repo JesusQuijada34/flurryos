@@ -4,7 +4,7 @@
 #include <string>
 
 int main() {
-  using influent::BridgeProtocol;
+  using flurryos::BridgeProtocol;
 
   const auto ping = BridgeProtocol::handle("PING\n");
   assert(ping.ok);
@@ -22,10 +22,10 @@ int main() {
   assert(!invalid_package.ok);
   assert(invalid_package.payload == "INVALID_PACKAGE");
 
-  const auto valid_install = BridgeProtocol::handle("INSTALL /var/lib/influent/apks/notes.apk");
+  const auto valid_install = BridgeProtocol::handle("INSTALL /var/lib/flurryos/apks/notes.apk");
   assert(valid_install.ok);
 
-  const auto traversal = BridgeProtocol::handle("INSTALL /var/lib/influent/apks/../secret.apk");
+  const auto traversal = BridgeProtocol::handle("INSTALL /var/lib/flurryos/apks/../secret.apk");
   assert(!traversal.ok);
   assert(traversal.payload == "INVALID_APK_PATH");
 

@@ -1,8 +1,8 @@
-# Influent OS — estado de la primera entrega
+# FlurryOS OS — estado de la primera entrega
 
 ## Alcance
 
-Influent OS es una primera imagen experimental para **x86_64**, basada en Ubuntu Noble y ensamblada con `live-build`. Incluye una sesión GNOME sobre Wayland, tema Yaru, fondo visual propio, aplicaciones Linux de escritorio, herramientas C++ y QEMU/ADB para preparar la futura capa Android propia.
+FlurryOS OS es una primera imagen experimental para **x86_64**, basada en Ubuntu Noble y ensamblada con `live-build`. Incluye una sesión GNOME sobre Wayland, tema Yaru, fondo visual propio, aplicaciones Linux de escritorio, herramientas C++ y QEMU/ADB para preparar la futura capa Android propia.
 
 La imagen **no utiliza Waydroid**. La estrategia Android queda separada del escritorio Linux: el objetivo siguiente es ejecutar una instancia AOSP/Cuttlefish mediante virtualización y exponer únicamente operaciones controladas a través del puente C++.
 
@@ -12,7 +12,7 @@ La imagen **no utiliza Waydroid**. La estrategia Android queda separada del escr
 |---|---|
 | ISO Ubuntu x86_64 | Generada y validada |
 | Escritorio GNOME/Wayland con apariencia Ubuntu-like | Incluido |
-| Tema Yaru, fondo y ajustes visuales de Influent | Incluido |
+| Tema Yaru, fondo y ajustes visuales de FlurryOS | Incluido |
 | Servicio puente C++ | Implementado y probado |
 | Controlador C++ de runtime Android | Interfaz y backend inicial implementados; requiere imagen Cuttlefish para ejecución real |
 | Lanzador Java de APKs | Esqueleto Android Java incluido; pendiente de compilar con Android SDK/Gradle |
@@ -21,7 +21,7 @@ La imagen **no utiliza Waydroid**. La estrategia Android queda separada del escr
 
 ## Artefacto generado
 
-El archivo se encuentra en `os/dist/influent-os-noble-amd64.iso`. Tiene formato ISO 9660 arrancable, volumen `INFLUENT_OS` y un tamaño aproximado de 4,98 GB. Su suma SHA-256 está en `os/dist/influent-os-noble-amd64.iso.sha256`.
+El archivo se encuentra en `os/dist/flurryos-os-noble-amd64.iso`. Tiene formato ISO 9660 arrancable, volumen `FLURRYOS_OS` y un tamaño aproximado de 4,98 GB. Su suma SHA-256 está en `os/dist/flurryos-os-noble-amd64.iso.sha256`.
 
 La imagen está orientada a **pruebas en máquinas virtuales y arranque UEFI**. La primera entrega no usa `isohybrid` porque la versión de `live-build` disponible intenta combinar su backend antiguo de syslinux con GRUB2; se dejó un parche local versionado para GRUB2 y archivos squashfs grandes.
 

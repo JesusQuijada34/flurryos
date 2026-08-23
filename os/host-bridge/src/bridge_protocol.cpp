@@ -3,7 +3,7 @@
 #include <cctype>
 #include <sstream>
 
-namespace influent {
+namespace flurryos {
 namespace {
 
 std::string trim(std::string value) {
@@ -34,7 +34,7 @@ bool BridgeProtocol::valid_package_name(std::string_view package_name) {
 }
 
 bool BridgeProtocol::valid_apk_path(std::string_view path) {
-  constexpr std::string_view allowed_prefix = "/var/lib/influent/apks/";
+  constexpr std::string_view allowed_prefix = "/var/lib/flurryos/apks/";
   if (path.size() <= allowed_prefix.size() || path.substr(0, allowed_prefix.size()) != allowed_prefix || path.find("..") != std::string_view::npos) {
     return false;
   }
@@ -79,4 +79,4 @@ CommandResult BridgeProtocol::handle(const std::string_view line) {
   return {false, "UNKNOWN_COMMAND"};
 }
 
-}  // namespace influent
+}  // namespace flurryos
