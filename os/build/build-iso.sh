@@ -6,6 +6,7 @@ WORK_DIR="${WORK_DIR:-${ROOT_DIR}/.live-build}"
 OUTPUT_DIR="${OUTPUT_DIR:-${ROOT_DIR}/dist}"
 SUITE="${SUITE:-noble}"
 ARCH="amd64"
+BRIDGE_BUILD_DIR="${WORK_DIR}/host-bridge-build"
 
 if [[ "$(id -u)" -ne 0 ]]; then
   echo "Este script necesita ejecutarse como root para construir la imagen chroot." >&2
@@ -13,7 +14,7 @@ if [[ "$(id -u)" -ne 0 ]]; then
   exit 1
 fi
 
-for command in lb debootstrap mksquashfs xorriso; do
+for command in lb debootstrap mksquashfs xorriso cmake ninja; do
   if ! command -v "${command}" >/dev/null 2>&1; then
     echo "Falta '${command}'. Instala las herramientas de construcción Ubuntu antes de continuar:" >&2
     echo "sudo apt-get update && sudo apt-get install -y live-build debootstrap squashfs-tools xorriso" >&2
@@ -22,6 +23,8 @@ for command in lb debootstrap mksquashfs xorriso; do
 done
 
 mkdir -p "${WORK_DIR}" "${OUTPUT_DIR}"
+cmake -S "${ROOT_DIR}/host-bridge" -B "${BRIDGE_BUILD_DIR}" -G Ninja
+cmake --build "${BRIDGE_BUILD_DIR}" --parallel "$(nproc)"
 cd "${WORK_DIR}"
 
 # Use the versioned compatibility patch for this Ubuntu/live-build toolchain.
@@ -34,6 +37,7 @@ mkdir -p config/package-lists config/includes.chroot config/hooks/normal
 cp "${ROOT_DIR}/config/package-list.txt" config/package-lists/flurryos.list.chroot
 cp -a "${ROOT_DIR}/config/hooks/normal/." config/hooks/normal/
 cp -a "${ROOT_DIR}/overlay/." config/includes.chroot/
+install -D -m 0755 "${BRIDGE_BUILD_DIR}/flurryos-bridge" config/includes.chroot/usr/lib/flurryos/flurryos-bridge
 chmod +x config/hooks/normal/*.chroot config/includes.chroot/usr/local/bin/*
 
 lb config \
@@ -47,6 +51,8 @@ lb config \
   --mirror-binary-security "http://security.ubuntu.com/ubuntu/" \
   --archive-areas "main restricted universe multiverse" \
   --binary-images iso \
+  --linux-packages "linux-image-generic" \
+  --linux-flavours generic \
   --compression xz \
   --bootloader grub2 \
   --bootappend-live "boot=live components quiet splash" \
